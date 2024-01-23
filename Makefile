@@ -13,14 +13,19 @@ deps: init
 lint:
 	golangci-lint run ./src/...
 
-.PHONY: migrate
+.PHONY: migrate-up
 # Apply migrations
-migrate:
+migrate-up:
 	migrate -database "postgres://$(PG_USER):@$(PG_HOST):$(PG_PORT)/$(PG_DB)?sslmode=disable" -path ./src/migrations up
+
+.PHONY: migrate-down
+# Undo migrations
+migrate-down:
+	migrate -database "postgres://$(PG_USER):@$(PG_HOST):$(PG_PORT)/$(PG_DB)?sslmode=disable" -path ./src/migrations down
 
 .PHONY: run
 # Run the application and the database container
-run: migrate
+run: migrate-up
 	docker compose up -d postgres
 	air
 
