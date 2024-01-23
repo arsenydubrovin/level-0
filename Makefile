@@ -1,3 +1,6 @@
+include .env
+export
+
 all: help
 
 .PHONY: deps
@@ -10,11 +13,23 @@ deps: init
 lint:
 	golangci-lint run ./src/...
 
+.PHONY: migrate
+# Apply migrations
+migrate:
+	migrate -database "postgres://$(PG_USER):@$(PG_HOST):$(PG_PORT)/$(PG_DB)?sslmode=disable" -path ./src/migrations up
+
 .PHONY: run
 # Run the application and the database container
-run:
+run: migrate
 	docker compose up -d postgres
 	air
+
+.PHONY: init
+# Initialize the repository for development
+init: install-gofumpt install-air install-golangci-lint install-precommit install-migrate
+ifeq (,$(wildcard .git/hooks/pre-commit))
+	pre-commit install
+endif
 
 .PHONY: install-gofumpt
 install-gofumpt:
@@ -42,6 +57,13 @@ install-golangci-lint:
 ifeq (, $(shell which golangci-lint))
 	echo "Installing golangci-lint..."
 	$(shell curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.55.2)
+endif
+
+.PHONY: install-migrate
+install-migrate:
+ifeq (, $(shell which migrate))
+	echo "Installing migrate..."
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 endif
 
 .PHONY: help
