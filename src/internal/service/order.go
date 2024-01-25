@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/arsenydubrovin/level-0/src/internal/model"
 )
@@ -24,10 +26,16 @@ func (s *orderService) ListUIDs(ctx context.Context) (*[]string, error) {
 	return uids, nil
 }
 
-func (s *orderService) Create(ctx context.Context, order *model.Order) (string, error) {
-	// TODO: validate model
+func (s *orderService) Create(ctx context.Context, orderJSON []byte) (string, error) {
+	var order model.Order
 
-	uid, err := s.r.Insert(ctx, order)
+	if err := json.Unmarshal(orderJSON, &order); err != nil {
+		return "", fmt.Errorf("error unmarshalling order: %w", err)
+	}
+
+	// TODO: add fields validation
+
+	uid, err := s.r.Insert(ctx, &order)
 	if err != nil {
 		return "", err
 	}

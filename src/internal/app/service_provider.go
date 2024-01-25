@@ -5,6 +5,7 @@ import (
 
 	"github.com/arsenydubrovin/level-0/src/internal/config"
 	"github.com/arsenydubrovin/level-0/src/internal/controller/http"
+	"github.com/arsenydubrovin/level-0/src/internal/controller/stan"
 	"github.com/arsenydubrovin/level-0/src/internal/infrastructure/postgres"
 	"github.com/arsenydubrovin/level-0/src/internal/service"
 )
@@ -14,10 +15,18 @@ type serviceProvider struct {
 	applicationConfig config.ApplicationConfig
 	httpConfig        config.HTTPConfig
 	postgresConfig    config.PostgresConfig
+	stanConfig        config.StanConfig
 
 	orderRepository service.OrderRepository
-	orderService    http.OrderService
+	orderService    orderService
 	orderRouter     http.OrderRouter
+	orderSubscriber stan.OrderSubscriber
+}
+
+// orderService combines requirements of http server and message broker
+type orderService interface {
+	http.OrderService
+	stan.OrderService
 }
 
 func newServiceProvider() *serviceProvider {
@@ -63,6 +72,19 @@ func (s *serviceProvider) PostgresConfig() config.PostgresConfig {
 	return s.postgresConfig
 }
 
+func (s *serviceProvider) StanConfig() config.StanConfig {
+	if s.stanConfig == nil {
+		cfg, err := config.NewStanConfig()
+		if err != nil {
+			log.Fatalf("failed to get stan config: %s", err.Error())
+		}
+
+		s.stanConfig = cfg
+	}
+
+	return s.stanConfig
+}
+
 func (s *serviceProvider) OrderRepository() service.OrderRepository {
 	if s.orderRepository == nil {
 		repo, err := postgres.NewOrderRepository(
@@ -81,7 +103,7 @@ func (s *serviceProvider) OrderRepository() service.OrderRepository {
 	return s.orderRepository
 }
 
-func (s *serviceProvider) OrderService() http.OrderService {
+func (s *serviceProvider) OrderService() orderService {
 	if s.orderService == nil {
 		s.orderService = service.NewOrderService(s.OrderRepository())
 	}
@@ -95,4 +117,12 @@ func (s *serviceProvider) OrderRouter() http.OrderRouter {
 	}
 
 	return s.orderRouter
+}
+
+func (s *serviceProvider) OrderSubscriber() stan.OrderSubscriber {
+	if s.orderSubscriber == nil {
+		s.orderSubscriber = stan.NewOrderSubscriber(s.OrderService())
+	}
+
+	return s.orderSubscriber
 }

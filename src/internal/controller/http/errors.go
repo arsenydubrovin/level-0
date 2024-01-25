@@ -18,10 +18,6 @@ func (r *orderRouter) serverErrorResponse(ctx echo.Context, err error) error {
 	return r.errorResponse(ctx, http.StatusInternalServerError, msg)
 }
 
-func (r *orderRouter) badRequestResponse(ctx echo.Context, err error) error {
-	return r.errorResponse(ctx, http.StatusBadRequest, err)
-}
-
 func (r *orderRouter) notFoundResponse(ctx echo.Context) error {
 	msg := "the requested resource was not found"
 	return r.errorResponse(ctx, http.StatusNotFound, msg)

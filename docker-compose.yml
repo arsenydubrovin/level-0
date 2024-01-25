@@ -7,3 +7,9 @@ services:
       - 5432:5432
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
+
+  nats-streaming:
+    image: nats-streaming
+    ports:
+      - "4222:4222"
+      - "8222:8222"

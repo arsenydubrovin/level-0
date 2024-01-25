@@ -23,10 +23,17 @@ migrate-up:
 migrate-down:
 	migrate -database "postgres://$(PG_USER):@$(PG_HOST):$(PG_PORT)/$(PG_DB)?sslmode=disable" -path ./src/migrations down
 
+.PHONY: postgres-up
+postgres-up:
+	docker compose up -d postgres
+
+.PHONY: nats-streaming-up
+nats-streaming-up:
+	docker compose up -d nats-streaming
+
 .PHONY: run
 # Run the application and the database container
-run: migrate-up
-	docker compose up -d postgres
+run: postgres-up nats-streaming-up migrate-up
 	air
 
 .PHONY: init

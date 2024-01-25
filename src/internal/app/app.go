@@ -2,18 +2,22 @@ package app
 
 import (
 	"context"
+	"log"
 	"log/slog"
 
 	"github.com/arsenydubrovin/level-0/src/internal/config"
 	"github.com/arsenydubrovin/level-0/src/internal/logger"
 	echo "github.com/labstack/echo/v4"
+	stan "github.com/nats-io/stan.go"
 	slogecho "github.com/samber/slog-echo"
 )
 
 type App struct {
-	sp         *serviceProvider
-	httpServer *echo.Echo
-	logger     *slog.Logger
+	sp               *serviceProvider
+	httpServer       *echo.Echo
+	stanSubscriber   stan.Conn
+	stanSubscription stan.Subscription
+	logger           *slog.Logger
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -24,6 +28,7 @@ func NewApp(ctx context.Context) (*App, error) {
 		a.initServiceProvider,
 		a.initLogger,
 		a.initHTTPServer,
+		a.initStanSubscriber,
 	}
 
 	for _, f := range deps {
@@ -37,7 +42,35 @@ func NewApp(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run() error {
-	return a.runHTTPServer()
+	err := a.runStanSubscriber()
+	if err != nil {
+		return err
+	}
+
+	err = a.runHTTPServer()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) Stop(ctx context.Context) error {
+	err := a.stanSubscription.Unsubscribe()
+	if err != nil {
+		return err
+	}
+
+	err = a.stanSubscriber.Close()
+	if err != nil {
+		return err
+	}
+
+	if err := a.httpServer.Shutdown(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) initConfig(_ context.Context) error {
@@ -83,6 +116,26 @@ func (a *App) runHTTPServer() error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (a *App) initStanSubscriber(_ context.Context) error {
+	sc, err := stan.Connect(a.sp.StanConfig().StanClusterID(), "order-subscriber", stan.NatsURL(a.sp.StanConfig().NatsURL()))
+	if err != nil {
+		log.Fatalf("failed to connect to nats-streaming: %s", err.Error())
+	}
+	a.stanSubscriber = sc
+
+	return nil
+}
+
+func (a *App) runStanSubscriber() error {
+	sub, err := a.stanSubscriber.Subscribe("subject", a.sp.OrderSubscriber().CreateOrder)
+	if err != nil {
+		return err
+	}
+	a.stanSubscription = sub
 
 	return nil
 }
