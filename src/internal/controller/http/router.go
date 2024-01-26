@@ -29,6 +29,7 @@ func NewOrderRouter(s OrderService) *orderRouter {
 }
 
 func (r *orderRouter) RegisterRoutes(e *echo.Echo) {
-	e.GET("/order/:uid", r.fetchOrderHandler)
-	e.GET("/uids", r.listUIDsHandler)
+	apiGroup := e.Group("/api")
+	apiGroup.GET("/order/:uid", r.fetchOrderHandler)
+	apiGroup.GET("/uids", r.listUIDsHandler)
 }
