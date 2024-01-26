@@ -2,6 +2,8 @@ package model
 
 import "time"
 
+const OrderUIDLength = 19
+
 type Order struct {
 	OrderUID          string    `json:"order_uid"`
 	TrackNumber       string    `json:"track_number"`

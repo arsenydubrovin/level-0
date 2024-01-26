@@ -11,8 +11,9 @@ import (
 func (r *orderRouter) fetchOrderHandler(ctx echo.Context) error {
 	uid := ctx.Param("uid")
 
-	// TODO: validate uid?
-	// len != 19
+	if len(uid) != model.OrderUIDLength {
+		return r.notFoundResponse(ctx)
+	}
 
 	order, err := r.s.Fetch(ctx.Request().Context(), uid)
 	if err != nil {
