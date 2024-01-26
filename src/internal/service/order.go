@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/arsenydubrovin/level-0/src/internal/model"
+	validator "github.com/go-playground/validator/v10"
 )
 
 func (s *orderService) Fetch(ctx context.Context, uid string) (*model.Order, error) {
@@ -31,7 +33,16 @@ func (s *orderService) Create(ctx context.Context, orderJSON []byte) (string, er
 		return "", model.ErrInvalidData
 	}
 
-	// TODO: add fields validation
+	err := s.v.Struct(order)
+	if err != nil {
+		for _, e := range err.(validator.ValidationErrors) {
+			slog.Debug("failed to validate JSON",
+				slog.String("field", e.Field()),
+				slog.Any("value", e.Value()),
+			)
+		}
+		return "", model.ErrInvalidData
+	}
 
 	uid, err := s.r.Insert(ctx, &order)
 	if err != nil {

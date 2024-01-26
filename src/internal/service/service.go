@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/arsenydubrovin/level-0/src/internal/model"
+	validator "github.com/go-playground/validator/v10"
 )
 
 type orderService struct {
 	r OrderRepository
+	v *validator.Validate
 }
 
 type OrderRepository interface {
@@ -19,5 +21,6 @@ type OrderRepository interface {
 func NewOrderService(r OrderRepository) *orderService {
 	return &orderService{
 		r: r,
+		v: validator.New(),
 	}
 }
