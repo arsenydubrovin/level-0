@@ -10,15 +10,13 @@ import (
 )
 
 func (sb *orderSubscriber) CreateOrder(msg *stan.Msg) {
-	slog.Debug("message recived", slog.Int("lenght", len(msg.Data)))
-
 	uid, err := sb.s.Create(context.Background(), msg.Data)
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrInvalidData):
 			slog.Debug("received message is not valid")
 		case errors.Is(err, model.ErrOrderExists):
-			slog.Error("order with this already exists")
+			slog.Error("order with this uid already exists")
 		default:
 			slog.Error("error creating order", slog.String("err", err.Error()))
 		}
