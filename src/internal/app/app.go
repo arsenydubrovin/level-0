@@ -104,6 +104,7 @@ func (a *App) initHTTPServer(_ context.Context) error {
 			WithRequestBody: true,
 		}))
 
+	e.Static("/static", "src/ui/static")
 	a.sp.OrderRouter().RegisterRoutes(e)
 
 	a.httpServer = e

@@ -9,7 +9,7 @@ import (
 )
 
 func (r *orderRouter) fetchOrderHandler(ctx echo.Context) error {
-	uid := ctx.Param("uid")
+	uid := ctx.QueryParam("uid")
 
 	if len(uid) != model.OrderUIDLength {
 		return r.notFoundResponse(ctx)
@@ -25,7 +25,7 @@ func (r *orderRouter) fetchOrderHandler(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(http.StatusOK, envelope{"order": order})
+	return ctx.JSONPretty(http.StatusOK, envelope{"order": order}, "  ")
 }
 
 func (r *orderRouter) listUIDsHandler(ctx echo.Context) error {

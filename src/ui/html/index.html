@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Orders</title>
+
+	<link rel="stylesheet" href="../static/styles.css">
+
+<body>
+
+	<div class="main">
+		<div class="search">
+			<select id="orderUID" class="search__input select" name="uid">
+				<option value="" selected disabled>Select order UID</option>
+			</select>
+			<button class="search__input button" onclick="getOrder()">Show</button>
+		</div>
+
+		<pre class="result" id="result"></pre>
+	</div>
+
+	<script>
+		const select = document.getElementById('orderUID')
+		const result = document.getElementById('result')
+
+		function getOrder() {
+			const selectedUID = select.value;
+			if (!selectedUID) {
+				return
+			}
+
+			fetch(`/api/order?uid=${selectedUID}`)
+				.then(response => response.json())
+				.then(data => {
+					result.textContent = JSON.stringify(data, null, 2)
+				})
+				.catch(error => {
+					console.error('Error fetching order details:', error)
+				})
+		}
+
+		function updateOptions() {
+			const selectedValue = select.value
+
+			fetch('/api/uids')
+				.then(response => response.json())
+				.then(data => {
+
+					select.innerHTML = '<option value="" selected disabled>Select order UID</option>'
+					if (data.uids === null || data.uids === undefined) {
+						return
+					}
+
+					data.uids.forEach(uid => {
+						const option = document.createElement('option')
+						option.value = uid
+						option.textContent = uid
+						select.appendChild(option)
+					})
+
+					select.value = selectedValue
+				})
+				.catch(error => console.error('Error fetching uids:', error))
+		}
+
+		updateOptions()
+		select.addEventListener('mouseover', updateOptions)
+	</script>
+
+</body>
+
+</html>

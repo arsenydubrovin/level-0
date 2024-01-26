@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"text/template"
 
 	"github.com/arsenydubrovin/level-0/src/internal/model"
 	echo "github.com/labstack/echo/v4"
@@ -14,7 +15,8 @@ type OrderRouter interface {
 }
 
 type orderRouter struct {
-	s OrderService
+	s        OrderService
+	renderer *renderer
 }
 
 type OrderService interface {
@@ -25,11 +27,17 @@ type OrderService interface {
 func NewOrderRouter(s OrderService) *orderRouter {
 	return &orderRouter{
 		s: s,
+		renderer: &renderer{
+			t: template.Must(template.ParseGlob("src/ui/html/*.html")),
+		},
 	}
 }
 
 func (r *orderRouter) RegisterRoutes(e *echo.Echo) {
+	e.Renderer = r.renderer
+	e.GET("/", r.mainPageHandler)
+
 	apiGroup := e.Group("/api")
-	apiGroup.GET("/order/:uid", r.fetchOrderHandler)
+	apiGroup.GET("/order", r.fetchOrderHandler)
 	apiGroup.GET("/uids", r.listUIDsHandler)
 }
