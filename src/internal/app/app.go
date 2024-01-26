@@ -132,7 +132,7 @@ func (a *App) initStanSubscriber(_ context.Context) error {
 }
 
 func (a *App) runStanSubscriber() error {
-	sub, err := a.stanSubscriber.Subscribe("subject", a.sp.OrderSubscriber().CreateOrder)
+	sub, err := a.stanSubscriber.Subscribe(a.sp.StanConfig().StanSubject(), a.sp.OrderSubscriber().CreateOrder)
 	if err != nil {
 		return err
 	}
