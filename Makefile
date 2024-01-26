@@ -36,6 +36,11 @@ nats-streaming-up:
 run: postgres-up nats-streaming-up migrate-up
 	air
 
+.PHONY: run-publisher
+# Run the script to publish fake orders in nats-streaming
+run-publisher: nats-streaming-up
+	go run publisher/main.go
+
 .PHONY: init
 # Initialize the repository for development
 init: install-gofumpt install-air install-golangci-lint install-precommit install-migrate
