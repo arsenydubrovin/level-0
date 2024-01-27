@@ -17,11 +17,5 @@ func (r *renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 }
 
 func (r *orderRouter) mainPageHandler(ctx echo.Context) error {
-	// uids, err := r.s.ListUIDs(ctx.Request().Context())
-	// if err != nil {
-	// 	return r.serverErrorResponse(ctx, err)
-	// }
-
-	// return ctx.Render(http.StatusOK, "index.html", map[string]interface{}{"uids": uids})
 	return ctx.Render(http.StatusOK, "index.html", nil)
 }
