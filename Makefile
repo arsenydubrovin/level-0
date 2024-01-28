@@ -31,10 +31,15 @@ postgres-up:
 nats-streaming-up:
 	docker compose up -d nats-streaming
 
+.PHONY: run-air
+# Run the application in live reload mode
+run-air: postgres-up nats-streaming-up migrate-up
+	air
+
 .PHONY: run
 # Run the application and the database container
 run: postgres-up nats-streaming-up migrate-up
-	air
+	go run ./src/cmd/app
 
 .PHONY: run-publisher
 # Run the script to publish fake orders in nats-streaming
