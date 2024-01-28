@@ -6,6 +6,7 @@ import (
 	"github.com/arsenydubrovin/level-0/src/internal/config"
 	"github.com/arsenydubrovin/level-0/src/internal/controller/http"
 	"github.com/arsenydubrovin/level-0/src/internal/controller/stan"
+	"github.com/arsenydubrovin/level-0/src/internal/infrastructure/cache"
 	"github.com/arsenydubrovin/level-0/src/internal/infrastructure/postgres"
 	"github.com/arsenydubrovin/level-0/src/internal/service"
 )
@@ -15,6 +16,7 @@ type serviceProvider struct {
 	applicationConfig config.ApplicationConfig
 	httpConfig        config.HTTPConfig
 	postgresConfig    config.PostgresConfig
+	cacheConfig       config.CacheConfig
 	stanConfig        config.StanConfig
 
 	orderRepository service.OrderRepository
@@ -72,6 +74,19 @@ func (s *serviceProvider) PostgresConfig() config.PostgresConfig {
 	return s.postgresConfig
 }
 
+func (s *serviceProvider) CacheConfig() config.CacheConfig {
+	if s.cacheConfig == nil {
+		cfg, err := config.NewCacheConfig()
+		if err != nil {
+			log.Fatalf("failed to get cache config: %s", err.Error())
+		}
+
+		s.cacheConfig = cfg
+	}
+
+	return s.cacheConfig
+}
+
 func (s *serviceProvider) StanConfig() config.StanConfig {
 	if s.stanConfig == nil {
 		cfg, err := config.NewStanConfig()
@@ -87,7 +102,7 @@ func (s *serviceProvider) StanConfig() config.StanConfig {
 
 func (s *serviceProvider) OrderRepository() service.OrderRepository {
 	if s.orderRepository == nil {
-		repo, err := postgres.NewOrderRepository(
+		pg, err := postgres.NewOrderRepository(
 			s.PostgresConfig().DSN(),
 			s.PostgresConfig().MaxOpenConns(),
 			s.PostgresConfig().MaxIdleConns(),
@@ -97,7 +112,17 @@ func (s *serviceProvider) OrderRepository() service.OrderRepository {
 			log.Fatalf("failed to initialize order repository: %s", err.Error())
 		}
 
-		s.orderRepository = repo
+		// decorate the database with a cache
+		oc, err := cache.NewOrderCache(
+			s.CacheConfig().DefaultExpiration(),
+			s.CacheConfig().CleanupInterval(),
+			pg,
+		)
+		if err != nil {
+			log.Fatalf("failed to initialize order cache: %s", err.Error())
+		}
+
+		s.orderRepository = oc
 	}
 
 	return s.orderRepository
