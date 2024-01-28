@@ -36,7 +36,6 @@ func (r *orderRepository) Insert(ctx context.Context, order *model.Order) (strin
 		return "", fmt.Errorf("failed to insert order: %w", err)
 	}
 
-	slog.Debug("insert order", slog.String("uid", uid))
 	return uid, nil
 }
 
@@ -65,7 +64,6 @@ func (r *orderRepository) Get(ctx context.Context, uid string) (*model.Order, er
 		return nil, fmt.Errorf("failed to unmarshal order data: %w", err)
 	}
 
-	slog.Debug("get order", slog.String("order.uid", order.OrderUID))
 	return &order, nil
 }
 
