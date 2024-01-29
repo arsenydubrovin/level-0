@@ -13,6 +13,11 @@ deps: init
 lint:
 	golangci-lint run ./src/...
 
+.PHONY: test
+# Test the application
+test:
+	go test ./src/pkg/cache/...
+
 .PHONY: migrate-up
 # Apply migrations
 migrate-up:
