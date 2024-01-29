@@ -20,6 +20,7 @@ type App struct {
 	logger           *slog.Logger
 }
 
+// NewApp creates a new instance of the App and initializes its dependencies.
 func NewApp(ctx context.Context) (*App, error) {
 	a := &App{}
 
@@ -41,6 +42,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	return a, nil
 }
 
+// Run starts the application.
 func (a *App) Run() error {
 	err := a.runStanSubscriber()
 	if err != nil {
@@ -55,6 +57,7 @@ func (a *App) Run() error {
 	return nil
 }
 
+// Stop gracefully stops the application.
 func (a *App) Stop(ctx context.Context) error {
 	err := a.stanSubscription.Unsubscribe()
 	if err != nil {
@@ -73,6 +76,7 @@ func (a *App) Stop(ctx context.Context) error {
 	return nil
 }
 
+// initConfig initializes configuration.
 func (a *App) initConfig(_ context.Context) error {
 	err := config.Load(".env")
 	if err != nil {
@@ -82,12 +86,14 @@ func (a *App) initConfig(_ context.Context) error {
 	return nil
 }
 
+// initServiceProvider initializes the service provider.
 func (a *App) initServiceProvider(_ context.Context) error {
 	a.sp = newServiceProvider()
 
 	return nil
 }
 
+// initLogger initializes the logger.
 func (a *App) initLogger(_ context.Context) error {
 	l := logger.Load(a.sp.ApplicationConfig().Env())
 
@@ -97,6 +103,7 @@ func (a *App) initLogger(_ context.Context) error {
 	return nil
 }
 
+// initHTTPServer initializes the HTTP server instance and registers routes.
 func (a *App) initHTTPServer(_ context.Context) error {
 	e := echo.New()
 	e.Use(slogecho.NewWithConfig(a.logger,
@@ -112,6 +119,7 @@ func (a *App) initHTTPServer(_ context.Context) error {
 	return nil
 }
 
+// runHTTPServer starts the HTTP server.
 func (a *App) runHTTPServer() error {
 	err := a.httpServer.Start(a.sp.HTTPConfig().Port())
 	if err != nil {
@@ -121,6 +129,7 @@ func (a *App) runHTTPServer() error {
 	return nil
 }
 
+// initStanSubscriber initializes the nats-streaming subscriber.
 func (a *App) initStanSubscriber(_ context.Context) error {
 	sc, err := stan.Connect(a.sp.StanConfig().StanClusterID(), "order-subscriber", stan.NatsURL(a.sp.StanConfig().NatsURL()))
 	if err != nil {
@@ -131,6 +140,7 @@ func (a *App) initStanSubscriber(_ context.Context) error {
 	return nil
 }
 
+// runStanSubscriber starts the nats-streaming subscriber.
 func (a *App) runStanSubscriber() error {
 	sub, err := a.stanSubscriber.Subscribe(a.sp.StanConfig().StanSubject(), a.sp.OrderSubscriber().CreateOrder)
 	if err != nil {

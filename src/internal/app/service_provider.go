@@ -11,7 +11,7 @@ import (
 	"github.com/arsenydubrovin/level-0/src/internal/service"
 )
 
-// Service provider is responsible for dependency injection
+// Service provider is responsible for dependency injection.
 type serviceProvider struct {
 	applicationConfig config.ApplicationConfig
 	httpConfig        config.HTTPConfig
@@ -25,7 +25,7 @@ type serviceProvider struct {
 	orderSubscriber stan.OrderSubscriber
 }
 
-// orderService combines requirements of http server and message broker
+// orderService combines requirements of http server and message broker.
 type orderService interface {
 	http.OrderService
 	stan.OrderService

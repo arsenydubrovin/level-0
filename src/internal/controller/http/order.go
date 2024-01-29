@@ -15,7 +15,7 @@ func (r *orderRouter) fetchOrderHandler(ctx echo.Context) error {
 		return r.notFoundResponse(ctx)
 	}
 
-	order, err := r.s.Fetch(ctx.Request().Context(), uid)
+	order, err := r.service.Fetch(ctx.Request().Context(), uid)
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrOrderNotFound):
@@ -29,7 +29,7 @@ func (r *orderRouter) fetchOrderHandler(ctx echo.Context) error {
 }
 
 func (r *orderRouter) listUIDsHandler(ctx echo.Context) error {
-	uids, err := r.s.ListUIDs(ctx.Request().Context())
+	uids, err := r.service.ListUIDs(ctx.Request().Context())
 	if err != nil {
 		return r.serverErrorResponse(ctx, err)
 	}

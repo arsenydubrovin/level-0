@@ -15,7 +15,7 @@ type OrderRouter interface {
 }
 
 type orderRouter struct {
-	s        OrderService
+	service  OrderService
 	renderer *renderer
 }
 
@@ -26,7 +26,7 @@ type OrderService interface {
 
 func NewOrderRouter(s OrderService) *orderRouter {
 	return &orderRouter{
-		s: s,
+		service: s,
 		renderer: &renderer{
 			t: template.Must(template.ParseGlob("src/ui/html/*.html")),
 		},
